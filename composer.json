@@ -1,5 +1,5 @@
 {
-    "name": "tabirkeland/sso",
+    "name": "jasny/sso",
     "description": "Simple Single Sign-On",
     "keywords": ["sso", "auth"],
     "license": "MIT",
@@ -11,6 +11,10 @@
             "homepage": "http://www.jasny.net"
         }
     ],
+    "support": {
+        "issues": "https://github.com/jasny/sso/issues",
+        "source": "https://github.com/jasny/sso"
+    },
     "require": {
         "php": ">=5.5.0",
         "desarrolla2/cache": "^2.0.0",
@@ -22,8 +26,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Tabirkeland\\SSO\\": "src/"
+            "Jasny\\SSO\\": "src/"
         }
     }
 }
-
