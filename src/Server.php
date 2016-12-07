@@ -2,7 +2,6 @@
 
 namespace Jasny\SSO;
 
-use Adapter\File;
 use Desarrolla2\Cache\Cache;
 use Desarrolla2\Cache\Adapter;
 
@@ -31,6 +30,9 @@ abstract class Server
      */
     const HEADER_APPLICATION_JSON = 'Content-type: application/json; charset=UTF-8';
 
+    /**
+     * @var string
+     */
     const HEADER_IMAGE = 'Content-Type: image/png';
 
     /**
@@ -86,7 +88,7 @@ abstract class Server
      */
     protected function setCacheAdapter()
     {
-        $adapter = new File($this->options['files_cache_directory']);
+        $adapter = new \Adapter\File($this->options['files_cache_directory']);
         $adapter->setOption('ttl', $this->options['files_cache_ttl']);
 
         $this->cache = new Cache($adapter);
