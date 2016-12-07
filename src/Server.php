@@ -88,7 +88,7 @@ abstract class Server
      */
     protected function setCacheAdapter()
     {
-        $adapter = new \Adapter\File($this->options['files_cache_directory']);
+        $adapter = new Adapter\File($this->options['files_cache_directory']);
         $adapter->setOption('ttl', $this->options['files_cache_ttl']);
 
         $this->cache = new Cache($adapter);
