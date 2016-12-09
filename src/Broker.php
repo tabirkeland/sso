@@ -1,4 +1,5 @@
 <?php
+
 namespace Jasny\SSO;
 
 use Jasny\ValidationResult;
@@ -11,6 +12,11 @@ use Jasny\ValidationResult;
  */
 class Broker
 {
+    /**
+     * @var string
+     */
+    const COOKIE_PREFIX = 'sso_token_';
+
     /**
      * Url of SSO server
      * @var string
@@ -58,7 +64,9 @@ class Broker
         $this->broker = $broker;
         $this->secret = $secret;
 
-        if (isset($_COOKIE[$this->getCookieName()])) $this->token = $_COOKIE[$this->getCookieName()];
+        if (isset($_COOKIE[$this->getCookieName()])) {
+            $this->token = $_COOKIE[$this->getCookieName()];
+        }
     }
 
     /**
@@ -71,7 +79,7 @@ class Broker
      */
     protected function getCookieName()
     {
-        return 'sso_token_' . preg_replace('/[_\W]+/', '_', strtolower($this->broker));
+        return self::COOKIE_PREFIX . preg_replace('/[_\W]+/', '_', strtolower($this->broker));
     }
 
     /**
@@ -114,7 +122,7 @@ class Broker
      */
     public function isAttached()
     {
-        return isset($this->token);
+        return !empty($this->token);
     }
 
     /**
@@ -128,13 +136,14 @@ class Broker
         $this->generateToken();
 
         $data = [
-            'command' => 'attach',
-            'broker' => $this->broker,
-            'token' => $this->token,
-            'checksum' => hash('sha256', 'attach' . $this->token . $this->secret)
-        ] + $_GET;
+            'command'   => 'attach',
+            'broker'    => $this->broker,
+            'token'     => $this->token,
+            'checksum'  => hash('sha256', 'attach' . $this->token . $this->secret)
+        ];
+        $query = array_merge($data, $_GET, $params);
 
-        return $this->url . "?" . http_build_query($data + $params);
+        return $this->url . "?" . http_build_query($query);
     }
 
     /**
@@ -147,16 +156,19 @@ class Broker
         if ($this->isAttached()) return;
 
         if ($returnUrl === true) {
-            $protocol = !empty($_SERVER['HTTPS']) ? 'https://' : 'http://';
-            $returnUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+            $returnUrl = $this->getReturnUrl();
         }
 
-        $params = ['return_url' => $returnUrl];
-        $url = $this->getAttachUrl($params);
+        $url = $this->getAttachUrl(['return_url' => $returnUrl]);
 
         header("Location: $url", true, 307);
-        echo "You're redirected to <a href='$url'>$url</a>";
         exit();
+    }
+
+    protected function getReturnUrl()
+    {
+        $protocol = !empty($_SERVER['HTTPS']) ? 'https://' : 'http://';
+        return $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     }
 
     /**
@@ -185,7 +197,10 @@ class Broker
         if (!$this->isAttached()) {
             throw new NotAttachedException('No token');
         }
-        $url = $this->getRequestUrl($command, !$data || $method === 'POST' ? [] : $data);
+        if (empty($data) || $method === 'POST') {
+            $data = [];
+        }
+        $url = $this->getRequestUrl($command, $data);
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
