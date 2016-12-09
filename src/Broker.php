@@ -122,7 +122,7 @@ class Broker
      */
     public function isAttached()
     {
-        return !empty($this->token);
+        return isset($this->token) && !empty($this->token);
     }
 
     /**
@@ -131,7 +131,7 @@ class Broker
      * @param array $params
      * @return string
      */
-    public function getAttachUrl($params = [])
+    protected function getAttachUrl($params = [])
     {
         $this->generateToken();
 
@@ -159,7 +159,12 @@ class Broker
             $returnUrl = $this->getReturnUrl();
         }
 
-        $url = $this->getAttachUrl(['return_url' => $returnUrl]);
+        $params = [];
+        if (trim($returnUrl) != '') {
+            $params = ['return_url' => $returnUrl];
+        }
+
+        $url = $this->getAttachUrl($params);
 
         header("Location: $url", true, 307);
         exit();
@@ -274,7 +279,7 @@ class Broker
      */
     public function getUserInfo()
     {
-        if (!isset($this->userinfo)) {
+        if (!isset($this->userinfo) || empty($this->userInfo)) {
             $this->userinfo = $this->request('GET', 'userInfo');
         }
 

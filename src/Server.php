@@ -212,23 +212,6 @@ abstract class Server
     }
 
     /**
-     * Detect the type for the HTTP response.
-     * Should only be done for an `attach` request.
-     */
-    protected function detectReturnType()
-    {
-        if (!empty($_GET['return_url'])) {
-            $this->returnType = 'redirect';
-        } elseif (!empty($_GET['callback'])) {
-            $this->returnType = 'jsonp';
-        } elseif (strpos($_SERVER['HTTP_ACCEPT'], 'image/') !== false) {
-            $this->returnType = 'image';
-        } elseif (strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
-            $this->returnType = 'json';
-        }
-    }
-
-    /**
      * Attach a user session to a broker session
      */
     public function attach()
@@ -253,6 +236,23 @@ abstract class Server
 
         $this->cache->set($sid, $this->getSessionData('id'));
         $this->outputAttachSuccess();
+    }
+
+    /**
+     * Detect the type for the HTTP response.
+     * Should only be done for an `attach` request.
+     */
+    protected function detectReturnType()
+    {
+        if (isset($_GET['return_url']) && !empty($_GET['return_url'])) {
+            $this->returnType = 'redirect';
+        } elseif (isset($_GET['callback']) && !empty($_GET['callback'])) {
+            $this->returnType = 'jsonp';
+        } elseif (strpos($_SERVER['HTTP_ACCEPT'], 'image/') !== false) {
+            $this->returnType = 'image';
+        } elseif (strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
+            $this->returnType = 'json';
+        }
     }
 
     /**
@@ -332,8 +332,7 @@ abstract class Server
         $this->startBrokerSession();
         $this->setSessionData('sso_user', null);
 
-        header(self::HEADER_APPLICATION_JSON);
-        http_response_code(204);
+        header(self::HEADER_APPLICATION_JSON, true, 204);
     }
 
     /**
@@ -364,7 +363,7 @@ abstract class Server
      */
     protected function setSessionData($key, $value)
     {
-        if (!isset($value)) {
+        if (empty($value)) {
             unset($_SESSION[$key]);
             return;
         }
@@ -410,8 +409,7 @@ abstract class Server
             exit();
         }
 
-        http_response_code($http_status);
-        header(self::HEADER_APPLICATION_JSON);
+        header(self::HEADER_APPLICATION_JSON, true, $http_status);
 
         echo json_encode(['error' => $message]);
         exit();
