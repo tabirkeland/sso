@@ -410,7 +410,6 @@ abstract class Server
         }
 
         header(self::HEADER_APPLICATION_JSON, true, $http_status);
-
         echo json_encode(['error' => $message]);
         exit();
     }
