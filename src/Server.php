@@ -216,6 +216,8 @@ abstract class Server
      */
     public function attach()
     {
+        $this->detectReturnType();
+
         if (!isset($_REQUEST['broker']) || empty($_REQUEST['broker'])) {
             $this->fail("No broker specified", 400);
         }
@@ -260,7 +262,6 @@ abstract class Server
      */
     protected function outputAttachSuccess()
     {
-        $this->detectReturnType();
         if (empty($this->returnType)) {
             $this->fail("No return url specified", 400);
         }
@@ -408,6 +409,7 @@ abstract class Server
             header("Location: $url", true, 307);
             exit();
         }
+
 
         header(self::HEADER_APPLICATION_JSON, true, $http_status);
         echo json_encode(['error' => $message]);
